@@ -58,10 +58,37 @@ def _preprocess_data(data):
     # ---------------------------------------------------------------
 
     # ----------- Replace this code with your own preprocessing steps --------
-    predict_vector = feature_vector_df[['Madrid_wind_speed','Bilbao_rain_1h','Valencia_wind_speed']]
+    train_df= feature_vector_df.copy( deep=True)
+
+    # Feature has no significance so its removed
+    train_df = train_df.drop(['Unnamed: 0'], axis=1)
+
+    # Convert feature data type to floats
+    train_df['Valencia_wind_deg'] = train_df['Valencia_wind_deg'].astype(str).str.extract('(\d+)', expand=False).astype(float)
+    train_df['Seville_pressure'] = train_df['Seville_pressure'].astype(str).str.extract('(\d+)', expand=False).astype(float)
+
+    # Create a copy
+    Train = train_df.copy(deep='True')
+
+    # Split time to create new features 
+    Train['time'] = pd.to_datetime(Train['time'])
+    Train['Day'] = Train['time'].dt.day
+    Train['Month'] = Train['time'].dt.month
+    Train['Year'] = Train['time'].dt.year
+    Train['Hour'] = Train['time'].dt.hour
+
+    # Pass all features that were used from the note for during the model training phase to a new feature
+    predict_features = Train[['Year', 'Month', 'Day', 'Hour', 'Madrid_wind_speed',
+       'Madrid_clouds_all', 'Madrid_pressure', 'Madrid_weather_id',
+       'Seville_humidity', 'Seville_clouds_all', 'Seville_wind_speed',
+       'Seville_pressure', 'Seville_weather_id', 'Barcelona_wind_speed',
+       'Barcelona_wind_deg', 'Barcelona_pressure', 'Barcelona_weather_id',
+       'Valencia_wind_speed', 'Valencia_wind_deg', 'Valencia_humidity', 'Bilbao_wind_speed', 'Bilbao_wind_deg',
+       'Bilbao_clouds_all', 'Bilbao_pressure', 'Bilbao_weather_id']]
+    predict_features.info()
     # ------------------------------------------------------------------------
 
-    return predict_vector
+    return predict_features
 
 def load_model(path_to_model:str):
     """Adapter function to load our pretrained model into memory.
